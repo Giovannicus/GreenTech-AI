@@ -59,7 +59,7 @@ class Experiment():
             'val': np.array([]),
             'test': np.array([])
         }
-        self.precision_history = {
+        self.f1_history = {
             'train': np.array([]),
             'val': np.array([]),
             'test': np.array([])
@@ -108,21 +108,21 @@ class Experiment():
         try:
             data = np.loadtxt(fpath, delimiter=',').reshape(-1, 3)
             self.loss_history[dset_type] = data[:, 1]
-            self.precision_history[dset_type] = data[:, 2]
+            self.f1_history[dset_type] = data[:, 2]
         except:
             self.loss_history[dset_type] = np.array([])
-            self.precision_history[dset_type] = np.array([])
+            self.f1_history[dset_type] = np.array([])
 
 
-    def append_history_to_file(self, dset_type, loss, precision):
+    def append_history_to_file(self, dset_type, loss, f1):
         fpath = os.path.join(self.history_dir, dset_type + '.csv')
         with open(fpath, 'a') as f:
-            f.write('{},{},{}\n'.format(self.epoch, loss, precision))
+            f.write('{},{},{}\n'.format(self.epoch, loss, f1))
 
-    def save_history(self, dset_type, loss, precision):
+    def save_history(self, dset_type, loss, f1):
         self.loss_history[dset_type] = np.append(self.loss_history[dset_type], loss)
-        self.precision_history[dset_type] = np.append(self.precision_history[dset_type], precision)
-        self.append_history_to_file(dset_type, loss, precision)
+        self.f1_history[dset_type] = np.append(self.f1_history[dset_type], f1)
+        self.append_history_to_file(dset_type, loss, f1)
 
         if dset_type == 'val' and self.is_best_loss(loss):
             self.best_val_loss = loss
@@ -134,16 +134,16 @@ class Experiment():
     def is_best_loss(self, loss):
         return loss < self.best_val_loss
 
-    def save_weights(self, model, trn_loss, val_loss, trn_precision, val_precision):
+    def save_weights(self, model, trn_loss, val_loss, trn_f1, val_f1):
         weights_fname = self.name + '-weights-%d-%.3f-%.3f-%.3f-%.3f.pth' % (
-            self.epoch, trn_loss, trn_precision, val_loss, val_precision)
+            self.epoch, trn_loss, trn_f1, val_loss, val_f1)
         weights_fpath = os.path.join(self.weights_dir, weights_fname)
         torch.save({
             'last_epoch': self.epoch,
             'trn_loss': trn_loss,
             'val_loss': val_loss,
-            'trn_precision': trn_precision,
-            'val_precision': val_precision,
+            'trn_f1': trn_f1,
+            'val_f1': val_f1,
             'best_val_loss': self.best_val_loss,
             'best_val_loss_epoch': self.best_val_loss_epoch,
             'experiment': self.name,
@@ -157,9 +157,9 @@ class Experiment():
         self.log("loading weights '{}'".format(fpath))
         state = torch.load(fpath,map_location=torch.device(device="cuda" if torch.cuda.is_available() else "cpu"))
         model.load_state_dict(state['state_dict'])
-        self.log("loaded weights from experiment %s (last_epoch %d, trn_loss %s, trn_precision %s, val_loss %s, val_precision %s)" % (
+        self.log("loaded weights from experiment %s (last_epoch %d, trn_loss %s, trn_f1 %s, val_loss %s, val_f1 %s)" % (
             self.name, state['last_epoch'], state['trn_loss'],
-            state['trn_precision'], state['val_loss'], state['val_precision']))
+            state['trn_f1'], state['val_loss'], state['val_f1']))
         return model, state
 
     def save_optimizer(self, optimizer, val_loss):
@@ -198,16 +198,16 @@ class Experiment():
 
                 latest_epoch = int(train_data[-1, 0])
                 train_loss = train_data[-1, 1]
-                train_precision = train_data[-1, 2]
+                train_f1 = train_data[-1, 2]
                 val_loss = val_data[-1, 1]
-                val_precision = val_data[-1, 2]
+                val_f1 = val_data[-1, 2]
 
                 self.monitor.update(
                     epoch=latest_epoch,
                     train_loss=train_loss,
                     val_loss=val_loss,
-                    train_precision=train_precision,
-                    val_precision=val_precision
+                    train_f1=train_f1,
+                    val_f1=val_f1
                 )
 
                 self.monitor.save(os.path.join(self.history_dir, 'training_progress.png'))

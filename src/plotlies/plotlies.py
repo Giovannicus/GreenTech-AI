@@ -105,18 +105,18 @@ class TrainingMonitor:
         self.figsize = figsize
         self.train_losses = []
         self.val_losses = []
-        self.train_precisions = []
-        self.val_precisions = []
+        self.train_f1s = []
+        self.val_f1s = []
         self.epochs = []
 
         plt.style.use('default')
 
-    def update(self, epoch, train_loss, val_loss, train_precision, val_precision):
+    def update(self, epoch, train_loss, val_loss, train_f1, val_f1):
         self.epochs.append(epoch)
         self.train_losses.append(train_loss)
         self.val_losses.append(val_loss)
-        self.train_precisions.append(train_precision)
-        self.val_precisions.append(val_precision)
+        self.train_f1s.append(train_f1)
+        self.val_f1s.append(val_f1)
 
         clear_output(wait=True)
         self.plot()
@@ -147,24 +147,24 @@ class TrainingMonitor:
                         bbox=dict(facecolor='white', edgecolor='none', alpha=0.7))
 
 
-        ax2.plot(self.epochs, self.train_precisions, 'b-o', label='Training Precision',
+        ax2.plot(self.epochs, self.train_f1s, 'b-o', label='Training F1',
                 markersize=4, linewidth=2, alpha=0.8)
-        ax2.plot(self.epochs, self.val_precisions, 'r-o', label='Validation Precision',
+        ax2.plot(self.epochs, self.val_f1s, 'r-o', label='Validation F1',
                 markersize=4, linewidth=2, alpha=0.8)
-        ax2.set_title('Precision Over Time', pad=10)
+        ax2.set_title('F1 Over Time', pad=10)
         ax2.set_xlabel('Epoch')
-        ax2.set_ylabel('Precision')
+        ax2.set_ylabel('F1')
         ax2.grid(True, linestyle='--', alpha=0.7)
         ax2.legend(loc='lower right', frameon=True)
         ax2.set_ylim(0, 1)
 
-        if self.train_precisions:
-            ax2.annotate(f'{self.train_precisions[-1]:.4f}',
-                        (self.epochs[-1], self.train_precisions[-1]),
+        if self.train_f1s:
+            ax2.annotate(f'{self.train_f1s[-1]:.4f}',
+                        (self.epochs[-1], self.train_f1s[-1]),
                         xytext=(5, 5), textcoords='offset points',
                         bbox=dict(facecolor='white', edgecolor='none', alpha=0.7))
-            ax2.annotate(f'{self.val_precisions[-1]:.4f}',
-                        (self.epochs[-1], self.val_precisions[-1]),
+            ax2.annotate(f'{self.val_f1s[-1]:.4f}',
+                        (self.epochs[-1], self.val_f1s[-1]),
                         xytext=(5, 5), textcoords='offset points',
                         bbox=dict(facecolor='white', edgecolor='none', alpha=0.7))
 
@@ -184,8 +184,8 @@ class TrainingMonitor:
             'epoch': self.epochs[-1],
             'train_loss': self.train_losses[-1],
             'val_loss': self.val_losses[-1],
-            'train_precision': self.train_precisions[-1],
-            'val_precision': self.val_precisions[-1]
+            'train_f1': self.train_f1s[-1],
+            'val_f1': self.val_f1s[-1]
         }
 
     def stop(self):
@@ -202,12 +202,12 @@ class ShowExpMonitor:
     def create_figure(self):
         """Create and return the plotly figure"""
         # Leggi i dati
-        train_df = pd.read_csv(self.train_history_fpath, names=['epoch', 'loss', 'precision'])
-        val_df = pd.read_csv(self.val_history_fpath, names=['epoch', 'loss', 'precision'])
+        train_df = pd.read_csv(self.train_history_fpath, names=['epoch', 'loss', 'f1'])
+        val_df = pd.read_csv(self.val_history_fpath, names=['epoch', 'loss', 'f1'])
 
         fig = make_subplots(
             rows=2, cols=1,
-            subplot_titles=('Loss Over Time', 'Precision Over Time'),
+            subplot_titles=('Loss Over Time', 'f1 Over Time'),
             vertical_spacing=0.15
         )
 
@@ -219,8 +219,8 @@ class ShowExpMonitor:
         )
 
         fig.add_trace(
-            go.Scatter(x=train_df['epoch'], y=train_df['precision'],
-                      name='Train Precision', mode='lines+markers',
+            go.Scatter(x=train_df['epoch'], y=train_df['f1'],
+                      name='Train f1', mode='lines+markers',
                       line=dict(color='blue')),
             row=2, col=1
         )
@@ -233,8 +233,8 @@ class ShowExpMonitor:
         )
 
         fig.add_trace(
-            go.Scatter(x=val_df['epoch'], y=val_df['precision'],
-                      name='Val Precision', mode='lines+markers',
+            go.Scatter(x=val_df['epoch'], y=val_df['f1'],
+                      name='Val f1', mode='lines+markers',
                       line=dict(color='red')),
             row=2, col=1
         )
@@ -270,7 +270,7 @@ class ShowExpMonitor:
         )
 
         fig.update_yaxes(title_text="Loss", type="log", row=1, col=1)
-        fig.update_yaxes(title_text="Precision", row=2, col=1)
+        fig.update_yaxes(title_text="f1", row=2, col=1)
 
         return fig
 
