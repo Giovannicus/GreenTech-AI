@@ -207,7 +207,7 @@ class ShowExpMonitor:
 
         fig = make_subplots(
             rows=2, cols=1,
-            subplot_titles=('Loss Over Time', 'f1 Over Time'),
+            subplot_titles=('Loss Over Time', 'F1 Over Time'),
             vertical_spacing=0.15
         )
 
@@ -291,10 +291,10 @@ def plot_training_history(experiment_dir):
 
 def plot_confusion_matrix(confusion_matrix: torch.Tensor, class_names: list):
     """
-    Visualizza la confusion matrix usando Plotly con valori assoluti.
+    Visualize confusion torch matrix 
 
     Args:
-        confusion_matrix: torch.Tensor - La matrice di confusione
+        confusion_matrix: torch.Tensor 
     """
     
     cm = confusion_matrix.cpu().numpy()
@@ -309,21 +309,21 @@ def plot_confusion_matrix(confusion_matrix: torch.Tensor, class_names: list):
         texttemplate="%{z}",
         textfont={"size": 14},
         hoverongaps=False,
-        hovertemplate="Vero: %{y}<br>Predetto: %{x}<br>Valore: %{z}<extra></extra>"
+        hovertemplate="Target: %{y}<br>Predicted: %{x}<br>Counts: %{z}<extra></extra>"
     ))
 
     
     fig.update_layout(
         title={
-            'text': 'Matrice di Confusione',
+            'text': 'Confusion matrix',
             'y':0.95,
             'x':0.5,
             'xanchor': 'center',
             'yanchor': 'top',
             'font': {'size': 24}
         },
-        xaxis_title="Classe Predetta",
-        yaxis_title="Classe Vera",
+        xaxis_title="Predicted class",
+        yaxis_title="Target class",
         xaxis={'side': 'bottom'},
         width=800,
         height=800,
